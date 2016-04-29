@@ -1,0 +1,28 @@
+{
+  "name": "gulp-svgo",
+  "version": "1.0.0",
+  "description": "Optimizing SVG vector graphics files with Gulp",
+  "repository": "corneliusio/gulp-svgo",
+  "bugs": {
+    "url" : "https://github.com/corneliusio/gulp-svgo/issues"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Cornelius Ukena",
+    "email": "guy@cornelius.io"
+  },
+  "keywords": [
+    "gulpplugin",
+    "minify",
+    "optimize",
+    "svg",
+    "svgo"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "svgo": "^0.6.6"
+  }
+}
