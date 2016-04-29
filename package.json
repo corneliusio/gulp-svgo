@@ -15,6 +15,7 @@
     "email": "guy@cornelius.io"
   },
   "keywords": [
+    "gulp",
     "gulpplugin",
     "minify",
     "optimize",
