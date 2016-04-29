@@ -1,10 +1,10 @@
 {
   "name": "gulp-svgo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Optimizing SVG vector graphics files with Gulp",
   "repository": "corneliusio/gulp-svgo",
   "bugs": {
-    "url" : "https://github.com/corneliusio/gulp-svgo/issues"
+    "url": "https://github.com/corneliusio/gulp-svgo/issues"
   },
   "main": "index.js",
   "scripts": {
