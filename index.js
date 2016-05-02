@@ -6,7 +6,7 @@ var fs = require('fs'),
 module.exports = function(options) {
 
     var stream = new Stream.Transform({objectMode: true}),
-        settings = Object.assign({}, options),
+        settings = options || {},
         svgo = new SVGO(settings);
 
     stream._transform = function(file, encoding, next) {
