@@ -1,32 +1,28 @@
-var fs = require('fs'),
-    path = require('path'),
+let path = require('path'),
     Stream = require('stream'),
     SVGO = require('svgo');
 
-module.exports = function(options) {
+module.exports = options => {
 
-    var stream = new Stream.Transform({objectMode: true}),
+    let stream = new Stream.Transform({objectMode: true}),
         settings = options || {},
         svgo = new SVGO(settings);
 
-    stream._transform = function(file, encoding, next) {
-        var flow = this;
+    stream._transform = (file, encoding, next) => {
 
         if (path.extname(file.path).toLowerCase() !== '.svg' || !file.contents.toString('utf8')) {
-            flow.push(file);
-            return next();
+            return next(null, file);
         }
 
         if (file.isStream()) {
-            flow.push(file);
-            return next();
+            return next(null, file);
         }
 
         if (file.isBuffer()) {
-            svgo.optimize(file.contents.toString('utf8'), function(result) {
+            svgo.optimize(file.contents.toString('utf8'), result => {
                 file.contents = new Buffer(result.data);
-                flow.push(file);
-                return next();
+
+                return next(file);
             });
         }
     };
