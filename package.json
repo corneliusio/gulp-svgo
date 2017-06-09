@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=6.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,6 +27,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "svgo": "^0.6.6"
+    "svgo": "^0.7.2"
   }
 }
