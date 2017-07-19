@@ -1,3 +1,5 @@
+'use strict';
+
 let path = require('path'),
     Stream = require('stream'),
     SVGO = require('svgo');
