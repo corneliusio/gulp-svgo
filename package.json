@@ -1,6 +1,6 @@
 {
   "name": "gulp-svgo",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Optimizing SVG vector graphics files with Gulp",
   "repository": "corneliusio/gulp-svgo",
   "bugs": {
@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=4.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
