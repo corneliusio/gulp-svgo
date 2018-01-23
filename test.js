@@ -1,6 +1,6 @@
 import svgo from '.';
 import ava from 'ava';
-import {File} from 'gulp-util';
+import File from 'vinyl';
 
 const svg = {
     head: '<?xml version="1.0" encoding="UTF-8" standalone="no"?>',

@@ -21,7 +21,7 @@ module.exports = options => {
         }
 
         if (file.isBuffer()) {
-            svgo.optimize(file.contents.toString('utf8'), result => {
+            svgo.optimize(file.contents.toString('utf8')).then(result => {
                 file.contents = new Buffer(result.data);
 
                 return next(null, file);
