@@ -1,6 +1,7 @@
 # gulp-svgo
 
 [![NPM Version](https://img.shields.io/npm/v/gulp-svgo.svg?style=flat-square)](http://npmjs.com/package/gulp-svgo) [![NPM Downloads](https://img.shields.io/npm/dm/gulp-svgo.svg?style=flat-square&colorB=007ec6)](http://npmjs.com/package/gulp-svgo) [![Build Status](https://img.shields.io/travis/corneliusio/gulp-svgo/master.svg?style=flat-square)](https://travis-ci.org/corneliusio/gulp-svgo)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcorneliusio%2Fgulp-svgo.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcorneliusio%2Fgulp-svgo?ref=badge_shield)
 
 Optimizing SVG vector graphics files with Gulp
 
@@ -31,3 +32,7 @@ gulp.task('images', () => {
 ## Options
 
 Options are passed directly to [svgo](https://www.npmjs.com/package/svgo) instance.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcorneliusio%2Fgulp-svgo.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcorneliusio%2Fgulp-svgo?ref=badge_large)
