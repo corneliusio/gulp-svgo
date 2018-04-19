@@ -10,6 +10,8 @@ const svg = {
 
 const src = `${svg.head} ${svg.doctype} <!--comment--> ${svg.body}`;
 const expected = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path d="M0 0h42v42H0z"/></svg>';
+const srcPrefixed = '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#abc"/><defs><path id="abc" d="M0 0h42v42H0z"/></defs></svg>'
+const expectedPrefixed = '<svg xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#some_svg__abc"/><defs><path id="some_svg__abc" d="M0 0h42v42H0z"/></defs></svg>';
 
 function test(msg, stream, file, assertion) {
 
@@ -50,3 +52,14 @@ test('handles svgo options', svgo({
 }), (t, data, file) => {
     t.true(data.contents.toString().includes(svg.doctype));
 });
+
+test('passes path for prefixing', svgo({
+    plugins: [
+        {prefixIds: {active: true}}
+    ]
+}), new File({
+    path: 'some.svg',
+    contents: new Buffer(srcPrefixed)
+}), (t, data, file) => {
+    t.is(data.contents.toString(), expectedPrefixed);
+})
