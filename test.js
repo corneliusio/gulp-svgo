@@ -29,14 +29,14 @@ function test(msg, stream, file, assertion) {
 
 test('passes through non-svg files unaltered', svgo(), new File({
     path: 'some.jpg',
-    contents: new Buffer([])
+    contents: Buffer.from([])
 }), (t, data, file) => {
     t.is(data.contents.toString(), file.contents.toString());
 });
 
 test('minifies svg', svgo(), new File({
     path: 'some.svg',
-    contents: new Buffer(src)
+    contents: Buffer.from(src)
 }), (t, data, file) => {
     t.is(data.contents.toString(), expected);
 });
@@ -47,7 +47,7 @@ test('handles svgo options', svgo({
     ]
 }), new File({
     path: 'some.svg',
-    contents: new Buffer(src)
+    contents: Buffer.from(src)
 }), (t, data, file) => {
     t.true(data.contents.toString().includes(svg.doctype));
 });
@@ -59,7 +59,7 @@ test('passes path for prefixing', svgo({
     ]
 }), new File({
     path: 'some.svg',
-    contents: new Buffer(src)
+    contents: Buffer.from(src)
 }), (t, data, file) => {
     t.is(data.contents.toString(), expectedWithPrefix);
 });
