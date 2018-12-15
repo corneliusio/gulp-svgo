@@ -27,6 +27,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "plugin-error": "^1.0.1",
     "svgo": "^1.0.0"
   },
   "devDependencies": {

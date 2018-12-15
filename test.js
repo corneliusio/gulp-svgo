@@ -1,30 +1,31 @@
-import svgo from '.';
-import ava from 'ava';
-import File from 'vinyl';
+const svgo = require('.');
+const ava = require('ava');
+const File = require('vinyl');
 
 const svg = {
     head: '<?xml version="1.0" encoding="UTF-8" standalone="no"?>',
     doctype: '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
-    body: '<svg width="100%" height="100%" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;"> <rect id="some-id" x="0" y="0" width="42" height="42"/> </svg>'
+    body: '<svg width="100%" height="100%" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;"> <rect id="some-id" x="0" y="0" width="42" height="42"/> </svg>',
+    malformed: '<svg width="100%" height="100%" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;"> <rect id="some-id" x="0" y="0" width="42" height="42"/>'
 };
 
+const malformed = `${svg.head} ${svg.doctype} ${svg.malformed}`;
 const src = `${svg.head} ${svg.doctype} <!--comment--> ${svg.body}`;
 const expected = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path d="M0 0h42v42H0z"/></svg>';
 const expectedWithPrefix = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path id="some_svg__some-id" d="M0 0h42v42H0z"/></svg>';
 
 function test(msg, stream, file, assertion) {
-
-    return ava(msg, t => {
-
-        return new Promise(resolve => {
-
-            stream.on('data', data => {
-                resolve(assertion(t, data, file));
-            });
-
-            stream.write(file);
+    return ava(msg, t => new Promise(resolve => {
+        stream.on('data', data => {
+            resolve(assertion(t, data, file));
         });
-    });
+
+        stream.on('error', error => {
+            resolve(assertion(t, error, file));
+        });
+
+        stream.write(file);
+    }));
 }
 
 test('passes through non-svg files unaltered', svgo(), new File({
@@ -41,9 +42,19 @@ test('minifies svg', svgo(), new File({
     t.is(data.contents.toString(), expected);
 });
 
+test('handles error for malformed svg', svgo(), new File({
+    path: `${__dirname}/malformed.svg`,
+    contents: Buffer.from(malformed)
+}), (t, data, file) => {
+    const message = `Error in parsing SVG: Unclosed root tag\n\tFile: malformed.svg\n\tLine: 0\n\tColumn: 468\n\tChar:`;
+
+    t.is(data.constructor.name, 'PluginError');
+    t.is(data.message, message);
+});
+
 test('handles svgo options', svgo({
     plugins: [
-        {removeDoctype: false}
+        { removeDoctype: false }
     ]
 }), new File({
     path: 'some.svg',
@@ -54,8 +65,8 @@ test('handles svgo options', svgo({
 
 test('passes path for prefixing', svgo({
     plugins: [
-        {prefixIds: true},
-        {cleanupIDs: false}
+        { prefixIds: true },
+        { cleanupIDs: false }
     ]
 }), new File({
     path: 'some.svg',
