@@ -16,13 +16,33 @@ const expectedWithPrefix = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/20
 
 function test(msg, stream, file, assertion) {
     return ava(msg, t => new Promise(resolve => {
+        const output = [];
+        const stderr = process.stderr.write;
+
+        const fallback = setTimeout(() => {
+            process.stderr.write = stderr;
+
+            resolve(assertion(t, null, file, output));
+        }, 32);
+
         stream.on('data', data => {
-            resolve(assertion(t, data, file));
+            process.stderr.write = stderr;
+
+            clearTimeout(fallback);
+            resolve(assertion(t, data, file, output));
         });
 
         stream.on('error', error => {
-            resolve(assertion(t, error, file));
+            process.stderr.write = stderr;
+
+            clearTimeout(fallback);
+            resolve(assertion(t, error, file, output));
         });
+
+        process.stderr.write = (str, ...args) => {
+            output.push(str);
+            stderr.apply(process.stderr, [str, ...args]);
+        };
 
         stream.write(file);
     }));
@@ -45,11 +65,11 @@ test('minifies svg', svgo(), new File({
 test('handles error for malformed svg', svgo(), new File({
     path: `${__dirname}/malformed.svg`,
     contents: Buffer.from(malformed)
-}), (t, data, file) => {
-    const message = `Error in parsing SVG: Unclosed root tag\n\tFile: malformed.svg\n\tLine: 0\n\tColumn: 468\n\tChar:`;
+}), (t, data, file, output) => {
+    const message = `[33mgulp-svgo:[31m Error in parsing SVG: Unclosed root tag\n\t[0mFile: malformed.svg\n\tLine: 0\n\tColumn: 468\n\tChar:\n`;
+    const [error] = output;
 
-    t.is(data.constructor.name, 'PluginError');
-    t.is(data.message, message);
+    t.is(error, message);
 });
 
 test('handles svgo options', svgo({

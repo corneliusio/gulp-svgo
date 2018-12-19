@@ -23,16 +23,17 @@ module.exports = options => {
 
                 return next(null, file);
             }).catch(error => {
+                const colors = { yellow: '\x1b[33m', red: '\x1b[31m', reset: '\x1b[0m' };
                 const filepath = path.relative(process.cwd(), file.path);
-                const PluginError = require('plugin-error');
-                const message = error.message.replace(
-                    'Line:', `File: ${filepath}\nLine:`
-                ).replace(/\n/g, `\n\t`).trim();
+                const message = error.message || error;
 
-                return next(new PluginError('gulp-svgo', message, {
-                    showStack: false,
-                    showProperties: false
-                }));
+                if (message) {
+                    console.error(`${colors.yellow}gulp-svgo:${colors.red}`, message.replace(
+                        'Line:', `${colors.reset}File: ${filepath}\nLine:`
+                    ).replace(/\n/g, `\n\t`).trim());
+                }
+
+                return next(null);
             });
         }
     };
