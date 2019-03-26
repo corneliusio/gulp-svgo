@@ -16,8 +16,8 @@ $ npm install --save-dev gulp-svgo
 ## Usage
 
 ```js
-let gulp = require('gulp'),
-    svgo = require('gulp-svgo');
+const gulp = require('gulp');
+const svgo = require('gulp-svgo');
 
 gulp.task('images', () => {
 
