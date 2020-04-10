@@ -8,14 +8,14 @@
   },
   "main": "index.js",
   "engines": {
-    "node": ">=6.17.0"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "test": "ava --verbose"
   },
   "author": {
     "name": "Cornelius Ukena",
-    "email": "guy@cornelius.io"
+    "email": "guy@cornelius.dev"
   },
   "keywords": [
     "gulp",
@@ -30,7 +30,7 @@
     "svgo": "^1.0.0"
   },
   "devDependencies": {
-    "ava": "^1.0.1",
+    "ava": "^3.6.0",
     "vinyl": "^2.2.0"
   }
 }

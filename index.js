@@ -8,7 +8,6 @@ module.exports = options => {
         svgo = new SVGO(settings);
 
     stream._transform = (file, encoding, next) => {
-
         if (path.extname(file.path).toLowerCase() !== '.svg' || !file.contents.toString('utf8')) {
             return next(null, file);
         }

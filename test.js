@@ -41,7 +41,7 @@ function test(msg, stream, file, assertion) {
 
         process.stderr.write = (str, ...args) => {
             output.push(str);
-            stderr.apply(process.stderr, [str, ...args]);
+            stderr.apply(process.stderr, [ str, ...args ]);
         };
 
         stream.write(file);
@@ -67,7 +67,7 @@ test('handles error for malformed svg', svgo(), new File({
     contents: Buffer.from(malformed)
 }), (t, data, file, output) => {
     const message = `[33mgulp-svgo:[31m Error in parsing SVG: Unclosed root tag\n\t[0mFile: malformed.svg\n\tLine: 0\n\tColumn: 468\n\tChar:\n`;
-    const [error] = output;
+    const [ error ] = output;
 
     t.is(error, message);
 });
