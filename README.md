@@ -6,7 +6,7 @@ Optimizing SVG vector graphics files with Gulp
 
 A thin wrapper around [svgo](https://www.npmjs.com/package/svgo) for Gulp. Will pass through any non-svg files unaltered so you can use it in conjunction with other image optimization tools if you don't want a separate task for different file formats.
 
-Requires Node.js 22.12 or newer.
+Requires Node.js 22.18 or newer.
 
 ## Install
 
@@ -53,7 +53,7 @@ svgo({
 
 ## Migrating from v2
 
-- Node.js 22.12+ is required.
+- Node.js 22.18+ is required.
 - Options now use the svgo v2+ format shown above. The v1 shorthand (`plugins: [{ removeDoctype: false }]`) no longer works, and `cleanupIDs` is now `cleanupIds`.
-- Malformed SVGs now fail the stream instead of being logged and dropped. Handle the error in your task if you want to continue past bad files.
+- Malformed SVGs now fail the stream instead of being silently dropped (v2.2.1 and earlier) or logged and passed through (v2.3.0). Handle the error in your task if you want to continue past bad files.
 - Optimized output differs from svgo 1.x (e.g. attributes are sorted, `viewBox` is preserved by default).

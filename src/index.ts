@@ -4,7 +4,7 @@ import { Transform } from 'node:stream'
 import { optimize, type Config } from 'svgo'
 import type File from 'vinyl'
 
-const gulpSvgo = (options: Config = {}): Transform =>
+const svgo = (options: Config = {}): Transform =>
     new Transform({
         objectMode: true,
         transform(file: File, encoding, next) {
@@ -42,5 +42,5 @@ const gulpSvgo = (options: Config = {}): Transform =>
         },
     })
 
-export default gulpSvgo
-export { gulpSvgo as 'module.exports' }
+export default svgo
+export { svgo as 'module.exports' }

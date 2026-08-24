@@ -5,10 +5,10 @@
 ### Breaking
 
 - svgo upgraded from 1.x to ^4.1.0. Options now use the svgo v2+ configuration format (`preset-default` with `overrides`; `cleanupIDs` is now `cleanupIds`), and optimized output differs from svgo 1.x. This resolves every known vulnerability in the dependency tree.
-- Requires Node.js >=22.12.
+- Requires Node.js >=22.18.
 - Malformed SVGs now emit a stream error (with the underlying svgo error as `cause`) instead of being logged to stderr and passed through.
 - Stream-backed file contents now emit a "streaming not supported" error instead of passing through unoptimized.
-- The package is now ESM. CommonJS consumers on Node 22.12+ are still supported: `require('gulp-svgo')` keeps returning the plugin function directly.
+- The package is now ESM. CommonJS consumers on Node 22.18+ are still supported: `require('gulp-svgo')` keeps returning the plugin function directly.
 
 ### Changed
 

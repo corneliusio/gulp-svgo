@@ -15,10 +15,11 @@ jobs:
         permissions:
             contents: read
             id-token: write
+        timeout-minutes: 10
         steps:
-            - uses: actions/checkout@v6
-            - uses: pnpm/action-setup@v4
-            - uses: actions/setup-node@v7
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+            - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
               with:
                   node-version: '24'
                   cache: pnpm
