@@ -36,7 +36,7 @@
         "format": "oxfmt",
         "lint": "oxlint && oxfmt --check",
         "prepublishOnly": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
-        "test": "node --test test/index.test.ts",
+        "test": "pnpm run build && node --test test/index.test.ts test/dist.test.ts",
         "typecheck": "tsc"
     },
     "dependencies": {

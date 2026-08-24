@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
 import { Readable, type Transform } from 'node:stream'
 import { test } from 'node:test'
+import type { Config } from 'svgo'
 import File from 'vinyl'
 import svgo from '../src/index.ts'
 
@@ -14,12 +15,28 @@ const body =
 const src = `${head} ${doctype} <!--comment--> ${body}`
 const malformed = `${head} ${doctype} ${body.slice(0, -6)}`
 
-const run = (stream: Transform, file: File): Promise<File> =>
+const runAll = (stream: Transform, files: File[]): Promise<File[]> =>
     new Promise((resolve, reject) => {
-        stream.on('data', resolve)
+        const out: File[] = []
+
+        stream.on('data', (data: File) => out.push(data))
         stream.on('error', reject)
-        stream.end(file)
+        stream.on('end', () => resolve(out))
+
+        for (const file of files) {
+            stream.write(file)
+        }
+
+        stream.end()
     })
+
+const run = async (stream: Transform, file: File): Promise<File> => {
+    const out = await runAll(stream, [file])
+
+    assert.equal(out.length, 1, `expected 1 file from stream, got ${out.length}`)
+
+    return out[0]
+}
 
 test('passes through non-svg files unaltered', async () => {
     const file = new File({ path: 'some.jpg', contents: Buffer.from('jpg data') })
@@ -107,6 +124,41 @@ test('handles svgo options', async () => {
     const result = await run(stream, file)
 
     assert.ok(String(result.contents).includes(doctype))
+})
+
+test('emits every file in order', async () => {
+    const files = [
+        new File({ path: 'a.svg', contents: Buffer.from(src) }),
+        new File({ path: 'b.jpg', contents: Buffer.from('jpg data') }),
+        new File({ path: 'c.svg', contents: Buffer.from(src) }),
+    ]
+    const out = await runAll(svgo(), files)
+
+    assert.deepEqual(
+        out.map(file => file.path),
+        ['a.svg', 'b.jpg', 'c.svg'],
+    )
+    assert.ok(String(out[0].contents).startsWith('<svg'))
+    assert.equal(String(out[1].contents), 'jpg data')
+    assert.ok(String(out[2].contents).startsWith('<svg'))
+})
+
+test('a malformed file fails the stream even with other files queued', async () => {
+    const files = [
+        new File({ path: 'good.svg', contents: Buffer.from(src) }),
+        new File({ path: 'bad.svg', contents: Buffer.from(malformed) }),
+        new File({ path: 'later.svg', contents: Buffer.from(src) }),
+    ]
+
+    await assert.rejects(runAll(svgo(), files), /bad\.svg/)
+})
+
+test('invalid svgo configuration fails the stream', async () => {
+    const file = new File({ path: 'some.svg', contents: Buffer.from(src) })
+    // deliberately invalid plugin name, hence the cast
+    const stream = svgo({ plugins: ['notARealPlugin'] } as unknown as Config)
+
+    await assert.rejects(run(stream, file), /some\.svg/)
 })
 
 test('passes path for prefixing', async () => {
