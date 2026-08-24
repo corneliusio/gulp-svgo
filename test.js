@@ -61,9 +61,21 @@ function runAll(stream, files) {
         const out = [];
         const captured = [];
         const write = process.stderr.write;
+        let settled = false;
 
-        const restore = () => {
+        const done = (error, result) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
             process.stderr.write = write;
+
+            if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            }
         };
 
         process.stderr.write = str => {
@@ -73,16 +85,15 @@ function runAll(stream, files) {
         };
 
         stream.on('data', data => out.push(data));
-        stream.on('error', error => {
-            restore();
-            reject(error);
-        });
-        stream.on('end', () => {
-            restore();
-            resolve(out);
-        });
-        files.forEach(file => stream.write(file));
-        stream.end();
+        stream.on('error', error => done(error));
+        stream.on('end', () => done(null, out));
+
+        try {
+            files.forEach(file => stream.write(file));
+            stream.end();
+        } catch (error) {
+            done(error);
+        }
     });
 }
 
