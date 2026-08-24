@@ -23,6 +23,9 @@ const runAll = (stream: Transform, files: File[]): Promise<File[]> =>
         stream.on('error', reject)
         stream.on('end', () => resolve(out))
 
+        // cork so every file is accepted before the transform runs; end() uncorks
+        stream.cork()
+
         for (const file of files) {
             stream.write(file)
         }

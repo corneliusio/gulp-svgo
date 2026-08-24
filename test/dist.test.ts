@@ -16,9 +16,17 @@ const src = '<svg viewBox="0 0 1 1"><!--comment--><rect width="1" height="1"/></
 const optimizeOne = (plugin: Plugin, file: File): Promise<File> =>
     new Promise((resolve, reject) => {
         const stream = plugin()
+        const out: File[] = []
 
-        stream.on('data', resolve)
+        stream.on('data', (data: File) => out.push(data))
         stream.on('error', reject)
+        stream.on('end', () => {
+            if (out.length === 1) {
+                resolve(out[0])
+            } else {
+                reject(new Error(`expected 1 file from stream, got ${out.length}`))
+            }
+        })
         stream.end(file)
     })
 
@@ -42,6 +50,8 @@ test('dist works via ESM default import', async () => {
 
     const file = new File({ path: 'a.svg', contents: Buffer.from(src) })
     const result = await optimizeOne(mod.default, file)
+    const output = String(result.contents)
 
-    assert.ok(String(result.contents).startsWith('<svg'))
+    assert.ok(output.startsWith('<svg'), output)
+    assert.ok(!output.includes('<!--'))
 })
