@@ -56,6 +56,36 @@ function run(stream, file) {
     });
 }
 
+function runAll(stream, files) {
+    return new Promise((resolve, reject) => {
+        const out = [];
+        const captured = [];
+        const write = process.stderr.write;
+
+        const restore = () => {
+            process.stderr.write = write;
+        };
+
+        process.stderr.write = str => {
+            captured.push(str);
+
+            return true;
+        };
+
+        stream.on('data', data => out.push(data));
+        stream.on('error', error => {
+            restore();
+            reject(error);
+        });
+        stream.on('end', () => {
+            restore();
+            resolve(out);
+        });
+        files.forEach(file => stream.write(file));
+        stream.end();
+    });
+}
+
 const tests = [];
 
 function test(name, fn) {
@@ -140,6 +170,24 @@ test('handles svgo options', () => {
 
     return run(stream, file).then(result => {
         assert.ok(result.data.contents.toString().indexOf(svg.doctype) !== -1);
+    });
+});
+
+test('emits every file in order', () => {
+    const files = [
+        new File({ path: 'a.svg', contents: Buffer.from(src) }),
+        new File({ path: 'b.jpg', contents: Buffer.from('jpg data') }),
+        new File({ path: 'c.svg', contents: Buffer.from(malformed) }),
+        new File({ path: 'd.svg', contents: Buffer.from(src) })
+    ];
+
+    return runAll(svgo(), files).then(out => {
+        assert.strictEqual(out.length, 4);
+        assert.deepStrictEqual(out.map(file => file.path), ['a.svg', 'b.jpg', 'c.svg', 'd.svg']);
+        assert.strictEqual(out[0].contents.toString(), expected);
+        assert.strictEqual(out[1].contents.toString(), 'jpg data');
+        assert.strictEqual(out[2].contents.toString(), malformed);
+        assert.strictEqual(out[3].contents.toString(), expected);
     });
 });
 
