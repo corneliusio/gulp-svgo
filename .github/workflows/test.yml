@@ -1,31 +1,35 @@
 name: test
 
 on:
-  push:
-    branches: [master]
-  pull_request:
+    push:
+        branches: [master]
+    pull_request:
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      matrix:
-        node: ['8', '10', '12', '14', '16', '18', '20', '22', '24']
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: '24'
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ matrix.node }}
-      - run: node --version
-      - run: node test.js
+    test:
+        strategy:
+            fail-fast: false
+            matrix:
+                node: ['22', '24', '26']
+                os: [ubuntu-latest]
+                include:
+                    - node: '24'
+                      os: windows-latest
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+            - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm run lint
+            - run: pnpm run typecheck
+            - run: pnpm run test
+            - run: pnpm run build
+            - run: npm pack --dry-run

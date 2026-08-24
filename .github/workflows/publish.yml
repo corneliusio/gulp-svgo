@@ -1,0 +1,34 @@
+# Publishes to npm via trusted publishing (OIDC) — no npm token secret.
+# Requires a trusted publisher configured for this repo/workflow on npmjs.com.
+name: publish
+
+on:
+    push:
+        tags: ['v*']
+
+permissions:
+    contents: read
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/checkout@v6
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: '24'
+                  cache: pnpm
+                  registry-url: https://registry.npmjs.org
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm run lint
+            - run: pnpm run typecheck
+            - run: pnpm run test
+            - run: pnpm run build
+            - name: Verify tag matches package version
+              run: |
+                  [ "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}" ]
+            - run: npm publish

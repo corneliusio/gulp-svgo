@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.0.0
+
+### Breaking
+
+- svgo upgraded from 1.x to ^4.1.0. Options now use the svgo v2+ configuration format (`preset-default` with `overrides`; `cleanupIDs` is now `cleanupIds`), and optimized output differs from svgo 1.x. This resolves every known vulnerability in the dependency tree.
+- Requires Node.js >=22.12.
+- Malformed SVGs now emit a stream error (with the underlying svgo error as `cause`) instead of being logged to stderr and passed through.
+- Stream-backed file contents now emit a "streaming not supported" error instead of passing through unoptimized.
+- The package is now ESM. CommonJS consumers on Node 22.12+ are still supported: `require('gulp-svgo')` keeps returning the plugin function directly.
+
+### Changed
+
+- Source migrated to TypeScript; the package now ships type declarations.
+- Tests run on the built-in `node:test` runner.
+- Linting and formatting via oxlint and oxfmt.
+- CI tests Node 22/24/26 on Linux plus Node 24 on Windows, and a tag-triggered publish workflow uses npm trusted publishing (OIDC) — no npm token secret.
+
 ## 2.3.0
 
 Compatible with all previously supported Node.js versions (>=8).

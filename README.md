@@ -6,43 +6,54 @@ Optimizing SVG vector graphics files with Gulp
 
 A thin wrapper around [svgo](https://www.npmjs.com/package/svgo) for Gulp. Will pass through any non-svg files unaltered so you can use it in conjunction with other image optimization tools if you don't want a separate task for different file formats.
 
+Requires Node.js 22.12 or newer.
+
 ## Install
 
 ```
-$ npm install --save-dev gulp-svgo
+$ pnpm add -D gulp-svgo
 ```
 
 ## Usage
 
 ```js
-const gulp = require('gulp');
-const svgo = require('gulp-svgo');
+import gulp from 'gulp'
+import svgo from 'gulp-svgo'
 
-gulp.task('images', () => {
-
-    return gulp.src('src/img/*')
-        .pipe(svgo())
-        .pipe(gulp.dest('dest/img'));
-});
+export const images = () => gulp.src('src/img/*').pipe(svgo()).pipe(gulp.dest('dest/img'))
 ```
+
+CommonJS gulpfiles work too — `const svgo = require('gulp-svgo')`.
 
 ## Options
 
-Options are passed directly to [svgo](https://www.npmjs.com/package/svgo).
-
-This release wraps svgo 1.x, so options use the svgo 1.x plugin format:
+Options are passed directly to [svgo](https://www.npmjs.com/package/svgo) `optimize()` and use the svgo v4 [configuration format](https://svgo.dev/docs/preset-default/):
 
 ```js
 svgo({
     plugins: [
-        { removeDoctype: false }
-    ]
-});
+        {
+            name: 'preset-default',
+            params: {
+                overrides: {
+                    removeDoctype: false,
+                },
+            },
+        },
+    ],
+})
 ```
 
-## Notes
+## Behavior
 
-- Files that fail to parse are logged to stderr and passed through **unchanged** — they are no longer silently dropped from the stream.
-- Null files (e.g. from `gulp.src(..., { read: false })`), empty files, and stream-backed files are passed through untouched.
+- Null files (e.g. from `gulp.src(..., { read: false })`), pathless files, empty files, and non-svg files pass through untouched.
+- Stream-backed file contents are not supported and emit an error.
+- SVGs that fail to parse emit a stream error (with the original error as `cause`) instead of being silently dropped, so broken files fail your build.
 - svgo is an optimizer, not a sanitizer. Do not treat optimized SVGs from untrusted sources as safe browser content.
-- svgo 1.x contains known vulnerabilities in its dependency tree that cannot be fixed without dropping old Node.js support. If you are on Node.js 22 or newer, upgrade to gulp-svgo v3, which wraps svgo 4.
+
+## Migrating from v2
+
+- Node.js 22.12+ is required.
+- Options now use the svgo v2+ format shown above. The v1 shorthand (`plugins: [{ removeDoctype: false }]`) no longer works, and `cleanupIDs` is now `cleanupIds`.
+- Malformed SVGs now fail the stream instead of being logged and dropped. Handle the error in your task if you want to continue past bad files.
+- Optimized output differs from svgo 1.x (e.g. attributes are sorted, `viewBox` is preserved by default).
