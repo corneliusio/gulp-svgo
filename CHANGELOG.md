@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.1
+
+Documentation only — no code changes.
+
+- Restored the multiline pipe formatting in the README usage example.
+- Clarified that the Node.js 22.18 requirement applies to gulp-svgo >=3.0.0; older runtimes should use 2.x.
+
 ## 3.0.0
 
 ### Breaking
