@@ -6,7 +6,7 @@ Optimizing SVG vector graphics files with Gulp
 
 A thin wrapper around [svgo](https://www.npmjs.com/package/svgo) for Gulp. Will pass through any non-svg files unaltered so you can use it in conjunction with other image optimization tools if you don't want a separate task for different file formats.
 
-Requires Node.js 22.18 or newer.
+Requires Node.js 22.18 or newer (gulp-svgo >=3.0.0). For older Node.js versions, use gulp-svgo 2.x.
 
 ## Install
 
@@ -16,11 +16,15 @@ $ pnpm add -D gulp-svgo
 
 ## Usage
 
+<!-- prettier-ignore -->
 ```js
 import gulp from 'gulp'
 import svgo from 'gulp-svgo'
 
-export const images = () => gulp.src('src/img/*').pipe(svgo()).pipe(gulp.dest('dest/img'))
+export const images = () =>
+    gulp.src('src/img/*')
+        .pipe(svgo())
+        .pipe(gulp.dest('dest/img'))
 ```
 
 CommonJS gulpfiles work too — `const svgo = require('gulp-svgo')`.
