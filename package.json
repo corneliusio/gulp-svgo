@@ -1,17 +1,21 @@
 {
   "name": "gulp-svgo",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Optimizing SVG vector graphics files with Gulp",
   "repository": "corneliusio/gulp-svgo",
   "bugs": {
     "url": "https://github.com/corneliusio/gulp-svgo/issues"
   },
   "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "engines": {
     "node": ">=8.0.0"
   },
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "test": "ava --verbose"
+    "test": "node test.js"
   },
   "author": {
     "name": "Cornelius Ukena",
@@ -30,7 +34,6 @@
     "svgo": "^1.0.0"
   },
   "devDependencies": {
-    "ava": "^1.0.0",
     "vinyl": "^2.2.0"
   }
 }

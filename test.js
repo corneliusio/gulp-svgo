@@ -1,6 +1,7 @@
-const svgo = require('.');
-const ava = require('ava');
+const assert = require('assert');
+const { Readable } = require('stream');
 const File = require('vinyl');
+const svgo = require('.');
 
 const svg = {
     head: '<?xml version="1.0" encoding="UTF-8" standalone="no"?>',
@@ -14,83 +15,147 @@ const src = `${svg.head} ${svg.doctype} <!--comment--> ${svg.body}`;
 const expected = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path d="M0 0h42v42H0z"/></svg>';
 const expectedWithPrefix = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path id="some_svg__some-id" d="M0 0h42v42H0z"/></svg>';
 
-function test(msg, stream, file, assertion) {
-    return ava(msg, t => new Promise(resolve => {
-        const output = [];
-        const stderr = process.stderr.write;
+function run(stream, file) {
+    return new Promise((resolve, reject) => {
+        const captured = [];
+        const write = process.stderr.write;
+        let settled = false;
 
-        const fallback = setTimeout(() => {
-            process.stderr.write = stderr;
+        const done = (error, data) => {
+            if (settled) {
+                return;
+            }
 
-            resolve(assertion(t, null, file, output));
-        }, 32);
+            settled = true;
+            process.stderr.write = write;
 
-        stream.on('data', data => {
-            process.stderr.write = stderr;
-
-            clearTimeout(fallback);
-            resolve(assertion(t, data, file, output));
-        });
-
-        stream.on('error', error => {
-            process.stderr.write = stderr;
-
-            clearTimeout(fallback);
-            resolve(assertion(t, error, file, output));
-        });
-
-        process.stderr.write = (str, ...args) => {
-            output.push(str);
-            stderr.apply(process.stderr, [ str, ...args ]);
+            if (error) {
+                reject(error);
+            } else {
+                resolve({ data, stderr: captured.join('') });
+            }
         };
 
-        stream.write(file);
-    }));
+        process.stderr.write = str => {
+            captured.push(str);
+
+            return true;
+        };
+
+        stream.on('data', data => done(null, data));
+        stream.on('error', error => done(error));
+        stream.end(file);
+    });
 }
 
-test('passes through non-svg files unaltered', svgo(), new File({
-    path: 'some.jpg',
-    contents: Buffer.from([])
-}), (t, data, file) => {
-    t.is(data.contents.toString(), file.contents.toString());
+const tests = [];
+
+function test(name, fn) {
+    tests.push({ name, fn });
+}
+
+test('passes through non-svg files unaltered', () => {
+    const file = new File({ path: 'some.jpg', contents: Buffer.from('jpg data') });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.contents.toString(), 'jpg data');
+    });
 });
 
-test('minifies svg', svgo(), new File({
-    path: 'some.svg',
-    contents: Buffer.from(src)
-}), (t, data, file) => {
-    t.is(data.contents.toString(), expected);
+test('passes through null files', () => {
+    const file = new File({ path: 'some.svg', contents: null });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.contents, null);
+    });
 });
 
-test('handles error for malformed svg', svgo(), new File({
-    path: `${__dirname}/malformed.svg`,
-    contents: Buffer.from(malformed)
-}), (t, data, file, output) => {
-    const message = `[33mgulp-svgo:[31m Error in parsing SVG: Unclosed root tag\n\t[0mFile: malformed.svg\n\tLine: 0\n\tColumn: 468\n\tChar:\n`;
-    const [ error ] = output;
+test('passes through pathless files', () => {
+    const file = new File({ contents: Buffer.from(src) });
 
-    t.is(error, message);
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.contents.toString(), src);
+    });
 });
 
-test('handles svgo options', svgo({
-    plugins: [
-        { removeDoctype: false }
-    ]
-}), new File({
-    path: 'some.svg',
-    contents: Buffer.from(src)
-}), (t, data, file) => {
-    t.true(data.contents.toString().includes(svg.doctype));
+test('passes through empty svg files', () => {
+    const file = new File({ path: 'some.svg', contents: Buffer.from('') });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.contents.length, 0);
+    });
 });
 
-test('passes path for prefixing', svgo({
-    plugins: [
-        { prefixIds: true },
-        { cleanupIDs: false }
-    ]
-}), new File({
-    path: 'some.svg',
-    contents: Buffer.from(src)
-}), (t, data, file) => {
-    t.is(data.contents.toString(), expectedWithPrefix);
+test('passes through stream-backed files', () => {
+    const file = new File({ path: 'some.svg', contents: new Readable({ read() {} }) });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.isStream(), true);
+    });
+});
+
+test('minifies svg', () => {
+    const file = new File({ path: 'some.svg', contents: Buffer.from(src) });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data.contents.toString(), expected);
+    });
+});
+
+test('minifies uppercase .SVG extension', () => {
+    const file = new File({ path: 'some.SVG', contents: Buffer.from(src) });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data.contents.toString(), expected);
+    });
+});
+
+test('logs error and passes malformed svg through unchanged', () => {
+    const file = new File({ path: `${__dirname}/malformed.svg`, contents: Buffer.from(malformed) });
+
+    return run(svgo(), file).then(result => {
+        assert.strictEqual(result.data, file);
+        assert.strictEqual(result.data.contents.toString(), malformed);
+        assert.ok(result.stderr.indexOf('gulp-svgo:') !== -1, `stderr missing plugin name: ${result.stderr}`);
+        assert.ok(result.stderr.indexOf('Unclosed root tag') !== -1, `stderr missing parse error: ${result.stderr}`);
+    });
+});
+
+test('handles svgo options', () => {
+    const file = new File({ path: 'some.svg', contents: Buffer.from(src) });
+    const stream = svgo({ plugins: [{ removeDoctype: false }] });
+
+    return run(stream, file).then(result => {
+        assert.ok(result.data.contents.toString().indexOf(svg.doctype) !== -1);
+    });
+});
+
+test('passes path for prefixing', () => {
+    const file = new File({ path: 'some.svg', contents: Buffer.from(src) });
+    const stream = svgo({ plugins: [{ prefixIds: true }, { cleanupIDs: false }] });
+
+    return run(stream, file).then(result => {
+        assert.strictEqual(result.data.contents.toString(), expectedWithPrefix);
+    });
+});
+
+tests.reduce((chain, item) => chain.then(() => {
+    return Promise.resolve().then(item.fn).then(() => {
+        console.log(`ok - ${item.name}`);
+    }, error => {
+        process.exitCode = 1;
+        console.error(`not ok - ${item.name}`);
+        console.error(error && error.stack ? error.stack : error);
+    });
+}), Promise.resolve()).then(() => {
+    if (process.exitCode) {
+        console.error('\nFAILED');
+    } else {
+        console.log(`\n${tests.length} tests passed`);
+    }
 });
