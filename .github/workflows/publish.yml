@@ -32,4 +32,15 @@ jobs:
             - name: Verify tag matches package version
               run: |
                   [ "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}" ]
+            - name: Skip if version is already on the registry
+              id: check
+              run: |
+                  version=$(node -p "require('./package.json').version")
+                  if npm view "gulp-svgo@${version}" version >/dev/null 2>&1; then
+                      echo "Version ${version} already published, skipping."
+                      echo "published=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "published=false" >> "$GITHUB_OUTPUT"
+                  fi
             - run: npm publish
+              if: steps.check.outputs.published == 'false'
