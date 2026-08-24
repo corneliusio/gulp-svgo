@@ -18,6 +18,7 @@ const expectedWithPrefix = '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/20
 function run(stream, file) {
     return new Promise((resolve, reject) => {
         const captured = [];
+        const files = [];
         const write = process.stderr.write;
         let settled = false;
 
@@ -42,8 +43,15 @@ function run(stream, file) {
             return true;
         };
 
-        stream.on('data', data => done(null, data));
+        stream.on('data', data => files.push(data));
         stream.on('error', error => done(error));
+        stream.on('end', () => {
+            if (files.length === 1) {
+                done(null, files[0]);
+            } else {
+                done(new Error(`expected 1 file from stream, got ${files.length}`));
+            }
+        });
         stream.end(file);
     });
 }
