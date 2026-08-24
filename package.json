@@ -1,36 +1,57 @@
 {
-  "name": "gulp-svgo",
-  "version": "2.2.1",
-  "description": "Optimizing SVG vector graphics files with Gulp",
-  "repository": "corneliusio/gulp-svgo",
-  "bugs": {
-    "url": "https://github.com/corneliusio/gulp-svgo/issues"
-  },
-  "main": "index.js",
-  "engines": {
-    "node": ">=8.0.0"
-  },
-  "scripts": {
-    "test": "ava --verbose"
-  },
-  "author": {
-    "name": "Cornelius Ukena",
-    "email": "guy@cornelius.dev"
-  },
-  "keywords": [
-    "gulp",
-    "gulpplugin",
-    "minify",
-    "optimize",
-    "svg",
-    "svgo"
-  ],
-  "license": "MIT",
-  "dependencies": {
-    "svgo": "^1.0.0"
-  },
-  "devDependencies": {
-    "ava": "^1.0.0",
-    "vinyl": "^2.2.0"
-  }
+    "name": "gulp-svgo",
+    "version": "3.0.0",
+    "description": "Optimizing SVG vector graphics files with Gulp",
+    "keywords": [
+        "gulp",
+        "gulpplugin",
+        "minify",
+        "optimize",
+        "svg",
+        "svgo"
+    ],
+    "bugs": {
+        "url": "https://github.com/corneliusio/gulp-svgo/issues"
+    },
+    "license": "MIT",
+    "author": {
+        "name": "Cornelius Ukena",
+        "email": "guy@cornelius.dev"
+    },
+    "repository": "corneliusio/gulp-svgo",
+    "files": [
+        "dist"
+    ],
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "format": "oxfmt",
+        "lint": "oxlint && oxfmt --check",
+        "prepublishOnly": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
+        "test": "pnpm run build && node --test test/index.test.ts test/dist.test.ts",
+        "typecheck": "tsc"
+    },
+    "dependencies": {
+        "svgo": "^4.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.0",
+        "@types/vinyl": "^2.0.12",
+        "oxfmt": "^0.64.0",
+        "oxlint": "^1.79.0",
+        "typescript": "^7.0.2",
+        "vinyl": "^3.0.1"
+    },
+    "engines": {
+        "node": ">=22.18.0"
+    },
+    "packageManager": "pnpm@11.20.0"
 }
